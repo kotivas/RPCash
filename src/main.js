@@ -158,7 +158,8 @@ function renderGoal() {
     remainingAmountEl.textContent = "$" + formatNumberShort(remaining);
     progressValueEl.textContent = "$" + formatNumberShort(goal.savedAmount);
 
-    let progressPercent = goal.savedAmount / goal.targetAmount;
+    // if saved amount is negative, so progress circle will just be empty
+    let progressPercent = (goal.savedAmount>0? goal.savedAmount : 0) / goal.targetAmount;
     if (progressPercent > 1) progressPercent = 1;
     const dashoffset = 251.2 * (1 - progressPercent);
     progressFg.style.strokeDashoffset = dashoffset;
@@ -180,10 +181,16 @@ function renderGoal() {
         }
 
         div.classList.add("transaction");
-        div.innerHTML = `
+
+        if (tr.amount >= 0) {
+            div.innerHTML = `
         <span>${tr.comment}</span>
-        <span>${tr.amount >= 0 ? "+" : ""}$${formatNumberShort(tr.amount)}</span>
-      `;
+        <span>+$${formatNumberShort(tr.amount)}</span> `;
+        } else if (tr.amount < 0) {
+            div.innerHTML = `
+        <span>${tr.comment}</span>
+        <span style="color:#BA1B1D">-$${formatNumberShort(Math.abs(tr.amount))}</span>`;
+        }
         transactionsListEl.appendChild(div);
     });
 
@@ -200,7 +207,7 @@ addForm.addEventListener('submit', e => {
     var date = new Date();
     date = date.toLocaleDateString("ru-ru");
 
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amount)) {
         alert("Введите корректную сумму.");
         return;
     }
@@ -225,7 +232,7 @@ newTabBtn.addEventListener('click', () => {
 
     let targetStr = prompt("Введите сумму цели ($):", "1000");
     const targetAmount = parseFloat(targetStr);
-    if (isNaN(targetAmount) || targetAmount <= 0) {
+    if (isNaN(targetAmount)) {
         return alert("Введите корректную сумму цели.");
     }
 
